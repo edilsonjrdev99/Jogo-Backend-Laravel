@@ -1,0 +1,58 @@
+# Laravel
+src/vendor/
+src/node_modules/
+src/.env
+src/.env.backup
+src/.env.production
+src/.env.local
+src/.env.*.local
+src/storage/*.key
+src/storage/app/*
+src/storage/framework/cache/*
+src/storage/framework/sessions/*
+src/storage/framework/testing/*
+src/storage/framework/views/*
+src/storage/logs/*
+src/public/hot
+src/public/storage
+src/bootstrap/cache/*
+!src/storage/app/.gitignore
+!src/storage/framework/.gitignore
+!src/storage/framework/cache/.gitignore
+!src/storage/logs/.gitignore
+!src/bootstrap/cache/.gitignore
+
+# Environment files
+.env
+.env.backup
+.env.production
+.env.local
+.env.*.local
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Databases
+*.sqlite
+*.sqlite-journal
+*.db
+
+# IA Assistent
+.claude

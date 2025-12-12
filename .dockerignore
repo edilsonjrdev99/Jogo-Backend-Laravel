@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.env.backup
+.phpunit.result.cache
+node_modules
+vendor
+*.log
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
