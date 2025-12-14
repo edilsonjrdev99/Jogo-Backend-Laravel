@@ -2,13 +2,18 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UserUpdateRequest extends FormRequest
-{
+class UserUpdateRequest extends FormRequest {
     public function authorize(): bool {
-        return true;
+        $userId = $this->route('id');
+        $user = User::find($userId);
+
+        if(!$user) return false;
+
+        return $this->user()->can('update', $user);
     }
 
     public function rules(): array {

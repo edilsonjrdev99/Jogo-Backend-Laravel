@@ -6,22 +6,25 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UserStoreRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
+    public function authorize(): bool {
+        // Se tentar definir is_admin como true, deve ser admin autenticado
+        if($this->has('is_admin') && $this->input('is_admin') === true) {
+            return auth()->check() && auth()->user()->isAdmin();
+        }
+
         return true;
     }
 
-    public function rules(): array
-    {
+    public function rules(): array {
         return [
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'is_admin' => ['sometimes', 'boolean'],
         ];
     }
 
-    public function messages(): array
-    {
+    public function messages(): array {
         return [
             'name.required'      => 'O nome é obrigatório.',
             'name.max'           => 'O nome não pode ter mais de 255 caracteres.',

@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Tymon\JWTAuth\Http\Middleware\Authenticate;
 use App\Http\Middleware\JwtFromCookie;
+use App\Http\Middleware\AdminMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'jwt' => Authenticate::class,
             'jwt.cookie' => JwtFromCookie::class,
+            'admin' => AdminMiddleware::class,
         ]);
 
         $middleware->encryptCookies(except: [

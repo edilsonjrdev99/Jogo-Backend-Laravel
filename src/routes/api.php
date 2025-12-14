@@ -13,11 +13,20 @@ Route::get('/health', function () {
 });
 
 Route::prefix('users')->group(function () {
-    Route::get('/', [UserController::class, 'index']);
-    Route::get('/{id}', [UserController::class, 'show']);
-    Route::post('/', [UserController::class, 'store']);
-    Route::put('/{id}', [UserController::class, 'update']);
-    Route::delete('/{id}', [UserController::class, 'destroy']);
+    // Rotas públicas sem autenticação
+    Route::post('/', [UserController::class, 'store']);        // Registro público
+    Route::get('/', [UserController::class, 'index']);         // Lista pública
+    Route::get('/{id}', [UserController::class, 'show']);      // Detalhe público
+
+    // Rotas protegidas, requer autenticação
+    Route::middleware('auth:api')->group(function () {
+        Route::put('/{id}', [UserController::class, 'update']); // Auth + policy ownership check
+
+        // Rotas exclusivas de admin
+        Route::middleware('admin')->group(function () {
+            Route::delete('/{id}', [UserController::class, 'destroy']); // Admin only
+        });
+    });
 });
 
 Route::prefix('auth')->group(function () {

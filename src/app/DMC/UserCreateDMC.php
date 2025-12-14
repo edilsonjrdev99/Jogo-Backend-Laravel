@@ -8,6 +8,7 @@ class UserCreateDMC
         public readonly string $name,
         public readonly string $email,
         public readonly string $password,
+        public readonly bool $is_admin = false,
     ) {}
 
     public static function fromArray(array $data): self {
@@ -15,6 +16,7 @@ class UserCreateDMC
             name: $data['name'],
             email: $data['email'],
             password: $data['password'],
+            is_admin: $data['is_admin'] ?? false,
         );
     }
 
@@ -23,6 +25,7 @@ class UserCreateDMC
             'name'     => $this->name,
             'email'    => $this->email,
             'password' => $this->password,
+            'is_admin' => $this->is_admin,
         ];
     }
 }
