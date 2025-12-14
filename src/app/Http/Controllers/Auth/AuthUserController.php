@@ -11,10 +11,12 @@ use App\DMC\Auth\AuthUserLoginDMC;
 use App\Http\Requests\Auth\AuthUserLoginRequest;
 
 use App\Processes\Auth\AuthUserLoginProcess;
+use App\Processes\Auth\AuthUserLogoutProcess;
 
 class AuthUserController extends Controller {
     public function __construct(
-        private readonly AuthUserLoginProcess $authUserLoginProcess
+        private readonly AuthUserLoginProcess $authUserLoginProcess,
+        private readonly AuthUserLogoutProcess $authUserLogoutProcess
     ) {}
     /**
      * Método responsável por realizar o login do usuário, settar o cookie e retornar a response
@@ -41,6 +43,26 @@ class AuthUserController extends Controller {
     }
 
     /**
+     * Responsável por deslogar um usuário inativando seu token e retornar a response
+     * @return JsonResponse - Response informando se o usuário foi deslogado
+     */
+    public function logout(): JsonResponse {
+        $invalidateCookie = $this->authUserLogoutProcess->exec();
+
+        if(!$invalidateCookie) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token inválido.'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logout realizado com sucesso.'
+        ])->withCookie($invalidateCookie);
+    }
+
+    /**
      * Método responsável por criar e retornar o cookie para o controller settar na response caso exista um token
      * @param string $token - Token do usuário
      * @return Cookie|null - Retorna o Cookie ou null caso não exista um token
@@ -52,9 +74,12 @@ class AuthUserController extends Controller {
             name: 'auth_token',
             value: $token,
             minutes: 60 * 24,
-            httpOnly: true,
+            path: '/',
+            domain: null,
             secure: true,
-            sameSite: 'strict'
+            httpOnly: true,
+            raw: false,
+            sameSite: 'Strict'
         );
     }
 }

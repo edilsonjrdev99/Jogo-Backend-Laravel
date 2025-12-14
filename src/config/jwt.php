@@ -298,4 +298,10 @@ return [
 
     ],
 
+    'token' => [
+        'header' => 'Authorization',
+        'query' => 'token',
+        'cookie' => 'auth_token',
+    ],
+
 ];
