@@ -23,10 +23,10 @@ class AuthUserLogoutProcess {
             minutes: -1,
             path: '/',
             domain: null,
-            secure: true,
+            secure: false,
             httpOnly: true,
             raw: false,
-            sameSite: 'Strict'
+            sameSite: 'Lax'
         );
     }
 }

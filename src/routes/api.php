@@ -5,26 +5,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthUserController;
 use App\Http\Controllers\UserController;
 
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'ok',
-        'message' => 'API está funcionando'
-    ]);
-});
-
 Route::prefix('users')->group(function () {
-    // Rotas públicas sem autenticação
-    Route::post('/', [UserController::class, 'store']);        // Registro público
-    Route::get('/', [UserController::class, 'index']);         // Lista pública
-    Route::get('/{id}', [UserController::class, 'show']);      // Detalhe público
+    Route::post('/', [UserController::class, 'store']);
+    Route::get('/', [UserController::class, 'index']);
+    Route::get('/{id}', [UserController::class, 'show']);
 
-    // Rotas protegidas, requer autenticação
     Route::middleware('auth:api')->group(function () {
-        Route::put('/{id}', [UserController::class, 'update']); // Auth + policy ownership check
-
-        // Rotas exclusivas de admin
+        Route::put('/{id}', [UserController::class, 'update']);
         Route::middleware('admin')->group(function () {
-            Route::delete('/{id}', [UserController::class, 'destroy']); // Admin only
+            Route::delete('/{id}', [UserController::class, 'destroy']);
         });
     });
 });
@@ -34,4 +23,12 @@ Route::prefix('auth')->group(function () {
         Route::post('/login', [AuthUserController::class, 'login']);
         Route::middleware('auth:api')->post('/logout', [AuthUserController::class, 'logout']);
     });
+});
+
+// Rota para testar se a api está ativa
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'API está funcionando'
+    ]);
 });

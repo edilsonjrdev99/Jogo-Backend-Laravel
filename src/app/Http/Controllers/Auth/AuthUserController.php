@@ -76,10 +76,10 @@ class AuthUserController extends Controller {
             minutes: 60 * 24,
             path: '/',
             domain: null,
-            secure: true,
+            secure: false,
             httpOnly: true,
             raw: false,
-            sameSite: 'Strict'
+            sameSite: 'Lax'
         );
     }
 }
