@@ -12,11 +12,13 @@ use App\Http\Requests\Auth\AuthUserLoginRequest;
 
 use App\Processes\Auth\AuthUserLoginProcess;
 use App\Processes\Auth\AuthUserLogoutProcess;
+use App\Processes\Auth\AuthUserMeProcess;
 
 class AuthUserController extends Controller {
     public function __construct(
         private readonly AuthUserLoginProcess $authUserLoginProcess,
-        private readonly AuthUserLogoutProcess $authUserLogoutProcess
+        private readonly AuthUserLogoutProcess $authUserLogoutProcess,
+        private readonly AuthUserMeProcess $authUserMeProcess
     ) {}
     /**
      * Método responsável por realizar o login do usuário, settar o cookie e retornar a response
@@ -31,7 +33,7 @@ class AuthUserController extends Controller {
             return response()->json([
                 'success' => false,
                 'message' => 'Credencial inválida.'
-            ]);
+            ], 401);
         }
 
         $cookie = $this->setCookie($token);
@@ -53,13 +55,33 @@ class AuthUserController extends Controller {
             return response()->json([
                 'success' => false,
                 'message' => 'Token inválido.'
-            ]);
+            ], 401);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Logout realizado com sucesso.'
         ])->withCookie($invalidateCookie);
+    }
+
+    /**
+     * Responsável por retornar as informações do usuário logado e retornar a response
+     * @return JsonResponse - Response informando os dados do usuário logado
+     */
+    public function me(): JsonResponse {
+        $user = $this->authUserMeProcess->exec();
+
+        if(!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Usuário não autenticado.'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => $user
+        ]);
     }
 
     /**
