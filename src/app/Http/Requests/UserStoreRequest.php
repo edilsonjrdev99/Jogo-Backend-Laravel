@@ -3,6 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
+
+use App\Enums\UserClassEnum;
 
 class UserStoreRequest extends FormRequest
 {
@@ -21,6 +24,7 @@ class UserStoreRequest extends FormRequest
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'is_admin' => ['sometimes', 'boolean'],
+            'class'    => ['required', 'string', new Enum(UserClassEnum::class)]
         ];
     }
 
@@ -34,6 +38,7 @@ class UserStoreRequest extends FormRequest
             'password.required'  => 'A senha é obrigatória.',
             'password.min'       => 'A senha deve ter pelo menos 8 caracteres.',
             'password.confirmed' => 'A confirmação da senha não corresponde.',
+            'class.required'     => 'A classe é obrigatória.'
         ];
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\DMC;
 
+use App\Enums\UserClassEnum;
+
 class UserCreateDMC
 {
     public function __construct(
@@ -9,6 +11,7 @@ class UserCreateDMC
         public readonly string $email,
         public readonly string $password,
         public readonly bool $is_admin = false,
+        public readonly UserClassEnum $class = UserClassEnum::WARRIOR
     ) {}
 
     public static function fromArray(array $data): self {
@@ -17,6 +20,7 @@ class UserCreateDMC
             email: $data['email'],
             password: $data['password'],
             is_admin: $data['is_admin'] ?? false,
+            class: isset($data['class']) ? UserClassEnum::from($data['class']) : UserClassEnum::WARRIOR
         );
     }
 
@@ -26,6 +30,7 @@ class UserCreateDMC
             'email'    => $this->email,
             'password' => $this->password,
             'is_admin' => $this->is_admin,
+            'class'    => $this->class->value
         ];
     }
 }

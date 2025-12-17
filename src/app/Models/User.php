@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use App\Enums\UserClassEnum;
 
 class User extends Authenticatable implements JWTSubject {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -22,6 +23,7 @@ class User extends Authenticatable implements JWTSubject {
         'email',
         'password',
         'is_admin',
+        'class'
     ];
 
     /**
@@ -44,6 +46,7 @@ class User extends Authenticatable implements JWTSubject {
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'class' => UserClassEnum::class,
         ];
     }
 
