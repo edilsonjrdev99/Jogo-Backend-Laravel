@@ -3,11 +3,10 @@
 namespace App\Swoole\Server;
 
 use Swoole\WebSocket\Server;
-use Swoole\Http\Request;
-use Swoole\Http\Response;
 
 class WebSocketServer {
     private static array $onlineUsers = [];
+    private static array $chatMessages = [];
 
     public static function start(): void {
         $config = require __DIR__ . '/../Config/websocker.php';
@@ -19,7 +18,7 @@ class WebSocketServer {
 
         $server->set($config['server']);
 
-        // Cliente conectou
+        // Conexão do client
         $server->on('open', function (Server $server, $request) {
             self::$onlineUsers[$request->fd] = [
                 'fd' => $request->fd
@@ -33,30 +32,53 @@ class WebSocketServer {
             ]));
         });
 
-        // Recebe a mensagem
+        // Notificações do client
         $server->on('message', function (Server $server, $frame) {
             $data = json_decode($frame->data, true);
+            $type = $data['type'];
 
             if(!$data) return;
 
-            switch($data['type']){
+            echo "Nova notificação do client do tipo {$type}" . PHP_EOL;
+
+            switch($type){
                 case 'set_user':
-                    // Front informa quem é o usuário
                     self::$onlineUsers[$frame->fd]['name'] = $data['data']['name'];
-                break;
+                    break;
+                case 'chat_message':
+                    $user = self::$onlineUsers[$frame->fd] ?? null;
+
+                    if(!$user || empty($user['name'])) return;
+
+                    self::$chatMessages[] = [
+                        'user' => $user['name'],
+                        'message' => $data['data']['message'],
+                        'time' => date('H:i:s')
+                    ];
+                    break;
             }
 
+            // Devolve para os clients conectados
             foreach(self::$onlineUsers as $fd => $user){
                 if($server->isEstablished($fd)){
-                    $server->push($fd, json_encode([
-                        'type' => 'users_online',
-                        'data' => array_values(self::$onlineUsers)
-                    ]));
+                    if($type == 'set_user') {
+                        $server->push($fd, json_encode([
+                            'type' => 'users_online',
+                            'data' => array_values(self::$onlineUsers)
+                        ]));
+                    }
+
+                    if($type == 'chat_message'){
+                        $server->push($fd, json_encode([
+                            'type' => 'chat_update',
+                            'data' => self::$chatMessages
+                        ]));
+                    }
                 }
             }
         });
 
-        // Cliente desconectou
+        // Desconectado
         $server->on('close', function (Server $server, $fd) {
             unset(self::$onlineUsers[$fd]);
 
