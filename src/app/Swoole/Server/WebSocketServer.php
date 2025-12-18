@@ -9,7 +9,7 @@ class WebSocketServer {
     private static array $chatMessages = [];
 
     public static function start(): void {
-        $config = require __DIR__ . '/../Config/websocker.php';
+        $config = require __DIR__ . '/../Config/websocket.php';
 
         $server = new Server(
             $config['host'],
@@ -33,20 +33,20 @@ class WebSocketServer {
         });
 
         // Notificações do client
-        $server->on('message', function (Server $server, $frame) {
-            $data = json_decode($frame->data, true);
+        $server->on('message', function (Server $server, $request) {
+            $data = json_decode($request->data, true);
             $type = $data['type'];
 
             if(!$data) return;
 
-            echo "Nova notificação do client do tipo {$type}" . PHP_EOL;
+            echo "Nova notificação do client {$request->fd} do tipo {$type}" . PHP_EOL;
 
             switch($type){
                 case 'set_user':
-                    self::$onlineUsers[$frame->fd]['name'] = $data['data']['name'];
+                    self::$onlineUsers[$request->fd]['name'] = $data['data']['name'];
                     break;
                 case 'chat_message':
-                    $user = self::$onlineUsers[$frame->fd] ?? null;
+                    $user = self::$onlineUsers[$request->fd] ?? null;
 
                     if(!$user || empty($user['name'])) return;
 
@@ -82,7 +82,7 @@ class WebSocketServer {
         $server->on('close', function (Server $server, $fd) {
             unset(self::$onlineUsers[$fd]);
 
-            echo "Usuário {$fd} acabou de sair" . PHP_EOL;
+            echo "Usuário {$fd} se desconectou" . PHP_EOL;
 
             foreach(self::$onlineUsers as $clientFd => $user){
                 if($server->isEstablished($clientFd)){
