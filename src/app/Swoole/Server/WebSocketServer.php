@@ -3,13 +3,18 @@
 namespace App\Swoole\Server;
 
 use Swoole\WebSocket\Server;
+use App\Processes\Swoole\SwooleUserMovimentProcess;
 
 class WebSocketServer {
     private static array $onlineUsers = [];
     private static array $chatMessages = [];
 
+    private static SwooleUserMovimentProcess $swooleUserNovimentProcess;
+
     public static function start(): void {
         $config = require __DIR__ . '/../Config/websocket.php';
+
+        self::$swooleUserNovimentProcess = new SwooleUserMovimentProcess();
 
         $server = new Server(
             $config['host'],
@@ -37,18 +42,18 @@ class WebSocketServer {
             $data = json_decode($request->data, true);
             $type = $data['type'];
 
-            if(!$data) return;
+            if (!$data) return;
 
             echo "Nova notificação do client {$request->fd} do tipo {$type}" . PHP_EOL;
 
-            switch($type){
+            switch ($type) {
                 case 'set_user':
                     self::$onlineUsers[$request->fd]['name'] = $data['data']['name'];
                     break;
                 case 'chat_message':
                     $user = self::$onlineUsers[$request->fd] ?? null;
 
-                    if(!$user || empty($user['name'])) return;
+                    if (!$user || empty($user['name'])) return;
 
                     self::$chatMessages[] = [
                         'user' => $user['name'],
@@ -56,22 +61,32 @@ class WebSocketServer {
                         'time' => date('H:i:s')
                     ];
                     break;
+                case 'moviment':
+                    self::$swooleUserNovimentProcess->exec($data, $request->fd);
+                    break;
             }
 
             // Devolve para os clients conectados
-            foreach(self::$onlineUsers as $fd => $user){
-                if($server->isEstablished($fd)){
-                    if($type == 'set_user') {
+            foreach (self::$onlineUsers as $fd => $user) {
+                if ($server->isEstablished($fd)) {
+                    if ($type == 'set_user') {
                         $server->push($fd, json_encode([
                             'type' => 'users_online',
                             'data' => array_values(self::$onlineUsers)
                         ]));
                     }
 
-                    if($type == 'chat_message'){
+                    if ($type == 'chat_message') {
                         $server->push($fd, json_encode([
                             'type' => 'chat_update',
                             'data' => self::$chatMessages
+                        ]));
+                    }
+
+                    if ($type == 'moviment') {
+                        $server->push($fd, json_encode([
+                            'type' => 'moviment',
+                            'data' => self::$swooleUserNovimentProcess->positionUsers
                         ]));
                     }
                 }
@@ -80,12 +95,14 @@ class WebSocketServer {
 
         // Desconectado
         $server->on('close', function (Server $server, $fd) {
+            // Remove os usuários dos arrays que estavam quando desconectar
             unset(self::$onlineUsers[$fd]);
+            unset(self::$swooleUserNovimentProcess->positionUsers[$fd]);
 
             echo "Usuário {$fd} se desconectou" . PHP_EOL;
 
-            foreach(self::$onlineUsers as $clientFd => $user){
-                if($server->isEstablished($clientFd)){
+            foreach (self::$onlineUsers as $clientFd => $user) {
+                if ($server->isEstablished($clientFd)) {
                     $server->push($clientFd, json_encode([
                         'type' => 'users_online',
                         'data' => array_values(self::$onlineUsers)
